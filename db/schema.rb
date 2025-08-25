@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_25_160522) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_25_160828) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pgcrypto"
@@ -28,6 +28,20 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_160522) do
     t.index ["job_id"], name: "index_applications_on_job_id"
     t.index ["status"], name: "index_applications_on_status"
     t.check_constraint "status = ANY (ARRAY[0, 1, 2, 3])", name: "applications_status_check"
+  end
+
+  create_table "contracts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "job_id", null: false
+    t.uuid "client_id", null: false
+    t.uuid "freelancer_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_contracts_on_client_id"
+    t.index ["freelancer_id"], name: "index_contracts_on_freelancer_id"
+    t.index ["job_id"], name: "index_contracts_on_job_id", unique: true
+    t.index ["status"], name: "index_contracts_on_status"
+    t.check_constraint "status = ANY (ARRAY[0, 1, 2, 3])", name: "contracts_status_check"
   end
 
   create_table "jobs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -85,6 +99,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_160522) do
 
   add_foreign_key "applications", "jobs", on_delete: :cascade
   add_foreign_key "applications", "users", column: "freelancer_id", on_delete: :cascade
+  add_foreign_key "contracts", "jobs", on_delete: :cascade
+  add_foreign_key "contracts", "users", column: "client_id", on_delete: :restrict
+  add_foreign_key "contracts", "users", column: "freelancer_id", on_delete: :restrict
   add_foreign_key "jobs", "users", column: "client_id", on_delete: :cascade
   add_foreign_key "jobs_skills", "jobs", on_delete: :cascade
   add_foreign_key "jobs_skills", "skills", on_delete: :cascade
