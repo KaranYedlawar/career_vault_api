@@ -8,6 +8,10 @@ Bundler.require(*Rails.groups)
 
 module CareerVaultApi
   class Application < Rails::Application
+    config.generators do |g|
+      g.orm :active_record, primary_key_type: :uuid
+    end
+
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
 
@@ -28,5 +32,6 @@ module CareerVaultApi
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+    config.active_record.belongs_to_required_by_default = true
   end
 end
