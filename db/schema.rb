@@ -10,10 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_25_152547) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_25_153253) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
+
+  create_table "profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.text "bio"
+    t.decimal "hourly_rate", precision: 10, scale: 2
+    t.string "location"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_profiles_on_user_id"
+  end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.integer "role", default: 2, null: false
@@ -23,4 +35,5 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_152547) do
     t.check_constraint "role = ANY (ARRAY[0, 1, 2])", name: "users_role_check"
   end
 
+  add_foreign_key "profiles", "users", on_delete: :cascade
 end
