@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_25_161553) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_25_161810) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pgcrypto"
@@ -79,6 +79,23 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_161553) do
     t.check_constraint "status = ANY (ARRAY[0, 1, 2, 3])", name: "milestones_status_check"
   end
 
+  create_table "payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "contract_id", null: false
+    t.uuid "milestone_id"
+    t.integer "amount_cents", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.string "stripe_payment_intent_id"
+    t.string "stripe_transfer_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contract_id"], name: "index_payments_on_contract_id"
+    t.index ["milestone_id"], name: "index_payments_on_milestone_id"
+    t.index ["status"], name: "index_payments_on_status"
+    t.index ["stripe_payment_intent_id"], name: "index_payments_on_stripe_payment_intent_id", unique: true
+    t.index ["stripe_transfer_id"], name: "index_payments_on_stripe_transfer_id", unique: true
+    t.check_constraint "status = ANY (ARRAY[0, 1, 2])", name: "payments_status_check"
+  end
+
   create_table "profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
     t.string "first_name"
@@ -121,6 +138,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_161553) do
   add_foreign_key "jobs_skills", "jobs", on_delete: :cascade
   add_foreign_key "jobs_skills", "skills", on_delete: :cascade
   add_foreign_key "milestones", "contracts", on_delete: :cascade
+  add_foreign_key "payments", "contracts", on_delete: :restrict
+  add_foreign_key "payments", "milestones", on_delete: :nullify
   add_foreign_key "profiles", "users", on_delete: :cascade
   add_foreign_key "profiles_skills", "profiles", on_delete: :cascade
   add_foreign_key "profiles_skills", "skills", on_delete: :cascade
