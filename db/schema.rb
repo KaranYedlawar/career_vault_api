@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_25_160828) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_25_161553) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pgcrypto"
@@ -64,6 +64,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_160828) do
     t.index ["job_id", "skill_id"], name: "index_jobs_skills_on_job_id_and_skill_id", unique: true
   end
 
+  create_table "milestones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "contract_id", null: false
+    t.string "title", null: false
+    t.integer "amount_cents", default: 0, null: false
+    t.date "due_date"
+    t.integer "status", default: 0, null: false
+    t.integer "position"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contract_id", "position"], name: "index_milestones_on_contract_id_and_position"
+    t.index ["contract_id"], name: "index_milestones_on_contract_id"
+    t.index ["status"], name: "index_milestones_on_status"
+    t.check_constraint "status = ANY (ARRAY[0, 1, 2, 3])", name: "milestones_status_check"
+  end
+
   create_table "profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
     t.string "first_name"
@@ -105,6 +120,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_160828) do
   add_foreign_key "jobs", "users", column: "client_id", on_delete: :cascade
   add_foreign_key "jobs_skills", "jobs", on_delete: :cascade
   add_foreign_key "jobs_skills", "skills", on_delete: :cascade
+  add_foreign_key "milestones", "contracts", on_delete: :cascade
   add_foreign_key "profiles", "users", on_delete: :cascade
   add_foreign_key "profiles_skills", "profiles", on_delete: :cascade
   add_foreign_key "profiles_skills", "skills", on_delete: :cascade
