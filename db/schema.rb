@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_25_153253) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_25_155233) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "citext"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
@@ -27,6 +28,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_153253) do
     t.index ["user_id"], name: "index_profiles_on_user_id"
   end
 
+  create_table "profiles_skills", id: false, force: :cascade do |t|
+    t.uuid "profile_id", null: false
+    t.uuid "skill_id", null: false
+    t.index ["profile_id", "skill_id"], name: "index_profiles_skills_on_profile_id_and_skill_id", unique: true
+  end
+
+  create_table "skills", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.citext "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_skills_on_name", unique: true
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.integer "role", default: 2, null: false
     t.datetime "created_at", null: false
@@ -36,4 +50,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_153253) do
   end
 
   add_foreign_key "profiles", "users", on_delete: :cascade
+  add_foreign_key "profiles_skills", "profiles", on_delete: :cascade
+  add_foreign_key "profiles_skills", "skills", on_delete: :cascade
 end
