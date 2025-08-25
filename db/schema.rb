@@ -10,11 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_25_160211) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_25_160522) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
+
+  create_table "applications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "job_id", null: false
+    t.uuid "freelancer_id", null: false
+    t.text "cover_letter"
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["freelancer_id"], name: "index_applications_on_freelancer_id"
+    t.index ["job_id", "freelancer_id"], name: "index_applications_on_job_id_and_freelancer_id", unique: true
+    t.index ["job_id"], name: "index_applications_on_job_id"
+    t.index ["status"], name: "index_applications_on_status"
+    t.check_constraint "status = ANY (ARRAY[0, 1, 2, 3])", name: "applications_status_check"
+  end
 
   create_table "jobs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "client_id", null: false
@@ -69,6 +83,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_25_160211) do
     t.check_constraint "role = ANY (ARRAY[0, 1, 2])", name: "users_role_check"
   end
 
+  add_foreign_key "applications", "jobs", on_delete: :cascade
+  add_foreign_key "applications", "users", column: "freelancer_id", on_delete: :cascade
   add_foreign_key "jobs", "users", column: "client_id", on_delete: :cascade
   add_foreign_key "jobs_skills", "jobs", on_delete: :cascade
   add_foreign_key "jobs_skills", "skills", on_delete: :cascade
