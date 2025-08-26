@@ -1,43 +1,34 @@
-class Users::RegistrationsController < Devise::RegistrationsController
-  # respond_to :json
+module Users
+  class RegistrationsController < Devise::RegistrationsController
+    respond_to :json
+    skip_before_action :authenticate_request, only: [:create]
 
-  # # POST /users
-  # def create
-  #   build_resource(sign_up_params)
+    # POST /users
+    def create
+      build_resource(sign_up_params)
 
-  #   resource.save
-  #   yield resource if block_given?
+      resource.save
+      if resource.persisted?
+        render json: {
+          status: { code: 200, message: 'Signed up successfully.' },
+          data: UserSerializer.new(resource).serializable_hash[:data][:attributes]
+        }, status: :ok
+      else
+        render json: {
+          status: { code: 422, message: "User couldn't be created successfully." },
+          errors: resource.errors.full_messages
+        }, status: :unprocessable_entity
+      end
+    end
 
-  #   if resource.persisted?
-  #     if resource.active_for_authentication?
-  #       # sign_up(resource_name, resource)              removed this line because this app is pureyly API based
-  #       render json: {
-  #         message: "Signed up successfully.",
-  #         user: resource
-  #       }, status: :created
-  #     else
-  #       expire_data_after_sign_in!
-  #       render json: {
-  #         message: "Signed up but not active.",
-  #         user: resource
-  #       }, status: :created
-  #     end
-  #   else
-  #     clean_up_passwords resource
-  #     set_minimum_password_length
-  #     render json: {
-  #       errors: resource.errors.full_messages
-  #     }, status: :unprocessable_entity
-  #   end
-  # end
+    private
 
-  # private
+    def respond_with(resource, _opts = {})
+      render json: resource
+    end
 
-  # def sign_up_params
-  #   params.require(:user).permit(
-  #     :email,
-  #     :password,
-  #     :password_confirmation
-  #   )
-  # end
+    def sign_up_params
+      params.require(:user).permit(:email, :password, :password_confirmation)
+    end
+  end
 end

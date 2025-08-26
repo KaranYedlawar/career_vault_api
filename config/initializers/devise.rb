@@ -9,13 +9,12 @@
 # Use this hook to configure devise mailer, warden hooks and so forth.
 # Many of these configuration options can be set straight in your model.
 Devise.setup do |config|
-  
   # The secret key used by Devise. Devise uses this key to generate
   # random tokens. Changing this key will render invalid all existing
   # confirmation, reset password and unlock tokens in the database.
   # Devise will use the `secret_key_base` as its `secret_key`
   # by default. You can change it below and use your own secret key.
-  # config.secret_key = 'be36fd3dbbe508c0a0e92bb532aead58ffec32c5fcaf0adf8031ca78078d5b9921af134e254acd86966d1fadc40004862eac1f168b67744162567eb616f9f7fe'
+  # config.secret_key = 'b01341575704d62fca0e995771d28b3a439af560aae0017a71cbdfbccbd17e5a860ade5720cbd4e4c8090b29b96a471df5f5194b5ee6bdb68547991a3bd7b3b4'
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
@@ -127,7 +126,7 @@ Devise.setup do |config|
   config.stretches = Rails.env.test? ? 1 : 12
 
   # Set up a pepper to generate the hashed password.
-  # config.pepper = 'ff70e25e8dfeaac8d6ec82009e306a33a0153d1e8733397be16a63a7200bdcc265a5f3d0abe5b1c2c3824b17a506f10372116aa8f96e04c8217cea955e92e6b3'
+  # config.pepper = 'd0ed43906727f360e5fcb01dc85d3979849013dc1e5bd01b7626f3445edb66ac01100088e6fb133271cf084352174890fe387a70a30f39d48f0ec5c311612989'
 
   # Send a notification to the original email when the user's email is changed.
   # config.send_email_changed_notification = false
@@ -265,6 +264,7 @@ Devise.setup do |config|
   #
   # The "*/*" below is required to match Internet Explorer requests.
   # config.navigational_formats = ['*/*', :html, :turbo_stream]
+  config.navigational_formats = []
 
   # The default HTTP method used to sign out a resource. Default is :delete.
   config.sign_out_via = :delete
@@ -305,23 +305,21 @@ Devise.setup do |config|
   # Note: These might become the new default in future versions of Devise.
   config.responder.error_status = :unprocessable_entity
   config.responder.redirect_status = :see_other
-  config.navigational_formats = []
 
   # ==> Configuration for :registerable
-  # ==> JWT Configuration
-config.jwt do |jwt|
-  jwt.secret = Rails.application.credentials.devise_jwt_secret_key || ENV['DEVISE_JWT_SECRET_KEY']
-  jwt.dispatch_requests = [
-    ['POST', %r{^/users/sign_in$}],
-    ['POST', %r{^/users$}] # <-- include sign-up to get JWT on registration
 
-  ]
-  jwt.revocation_requests = [
-    ['DELETE', %r{^/users/sign_out$}]
-  ]
-  jwt.expiration_time = 30.minutes.to_i
-end
-
+  config.jwt do |jwt|
+    jwt.secret = Rails.application.credentials.devise_jwt_secret_key!
+    jwt.dispatch_requests = [
+      ['POST', %r{^/users/sign_in$}], # login
+      ['POST', %r{^/users$}]          # sign-up (registrations#create)
+    ]
+    jwt.revocation_requests = [
+      ['DELETE', %r{^/users/sign_out$}]
+    ]
+    jwt.expiration_time = 2.hours.to_i
+    jwt.request_formats = { user: [:json] }
+  end
 
   # When set to false, does not sign a user in automatically after their password is
   # changed. Defaults to true, so a user is signed in automatically after changing a password.
